@@ -25,6 +25,8 @@ postRouter.post("/", async (req, res) => {
   }
 });
 
+//Update her tak:)
+
 postRouter.delete("/:postId", async (req, res) => {
   try {
     const removedPost = await Post.deleteOne({ _id: req.params.postId });

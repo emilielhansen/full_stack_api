@@ -14,8 +14,9 @@ userRouter.get("/", async (req, res) => {
 });
 
 userRouter.post("/", async (req, res) => {
-  const { username, fullName, email, password, image } = req.body as CreateUserDto;
-  const user = new User({ username: username, fullName: fullName, email: email, password: password, image: image});
+  console.log(req.body);
+  const { username, fullname, email, password, image } = req.body as CreateUserDto;
+  const user = new User({ username: username, fullname: fullname, email: email, password: password, image: image});
 
   try {
     const savedUser = await user.save();
@@ -24,6 +25,8 @@ userRouter.post("/", async (req, res) => {
     res.json({ message: error });
   }
 });
+
+//Update husk det
 
 userRouter.delete("/:userId", async (req, res) => {
   try {
