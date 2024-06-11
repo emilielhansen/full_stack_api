@@ -25,7 +25,6 @@ postRouter.post("/", async (req, res) => {
   }
 });
 
-//Update her tak:)
 postRouter.post("/:postId", async (req, res) => {
   const { user, content } = req.body as CreatePostDto;
 

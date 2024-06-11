@@ -26,7 +26,6 @@ userRouter.post("/", async (req, res) => {
   }
 });
 
-//Update husk det
 userRouter.post("/:userId", async (req, res) => {
   const { username, fullname, email, password, image } = req.body as CreateUserDto;
 
