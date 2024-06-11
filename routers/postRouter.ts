@@ -25,7 +25,7 @@ postRouter.post("/", async (req, res) => {
   }
 });
 
-postRouter.post("/:postId", async (req, res) => {
+postRouter.put("/:postId", async (req, res) => {
   const { user, content } = req.body as CreatePostDto;
 
   try {

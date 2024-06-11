@@ -13,10 +13,22 @@ userRouter.get("/", async (req, res) => {
   }
 });
 
+userRouter.get("/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.json({ message: error });
+  }
+});
+
 userRouter.post("/", async (req, res) => {
   console.log(req.body);
-  const { username, fullname, email, password, image } = req.body as CreateUserDto;
-  const user = new User({ username: username, fullname: fullname, email: email, password: password, image: image});
+  const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
+  const user = new User({ username: username, fullname: fullname, email: email, password: password, image: image, createdAt: createdAt});
 
   try {
     const savedUser = await user.save();
@@ -27,12 +39,12 @@ userRouter.post("/", async (req, res) => {
 });
 
 userRouter.post("/:userId", async (req, res) => {
-  const { username, fullname, email, password, image } = req.body as CreateUserDto;
+  const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
       req.params.userId,
-      { username, fullname, email, password, image },
+      { username, fullname, email, password, image, createdAt },
       { new: true }
     );
 
