@@ -27,6 +27,25 @@ userRouter.post("/", async (req, res) => {
 });
 
 //Update husk det
+userRouter.post("/:userId", async (req, res) => {
+  const { username, fullname, email, password, image } = req.body as CreateUserDto;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.userId,
+      { username, fullname, email, password, image },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    res.json({ message: error });
+  }
+});
 
 userRouter.delete("/:userId", async (req, res) => {
   try {
