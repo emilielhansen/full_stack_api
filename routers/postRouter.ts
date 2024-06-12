@@ -25,7 +25,25 @@ postRouter.post("/", async (req, res) => {
   }
 });
 
-//Update her tak:)
+postRouter.put("/:postId", async (req, res) => {
+  const { user, content } = req.body as CreatePostDto;
+
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.postId,
+      { user, content },
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.json(updatedPost);
+  } catch (error) {
+    res.json({ message: error });
+  }
+});
 
 postRouter.delete("/:postId", async (req, res) => {
   try {
