@@ -3,6 +3,7 @@ import User from "../models/user";
 import CreateUserDto from "../dto/createUserDto";
 
 const userRouter = Router();
+const argon2 = require('argon2');
 
 userRouter.get("/", async (req, res) => {
   try {
@@ -28,16 +29,29 @@ userRouter.get("/:userId", async (req, res) => {
 userRouter.post("/", async (req, res) => {
   console.log(req.body);
   const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
-  const user = new User({ username: username, fullname: fullname, email: email, password: password, image: image, createdAt: createdAt});
 
   try {
+    // Hash the password
+    const hashedPassword = await argon2.hash(password);
+
+    // Create a new User instance with hashed password
+    const user = new User({ 
+      username: username, 
+      fullname: fullname, 
+      email: email, 
+      password: hashedPassword, 
+      image: image, 
+      createdAt: createdAt
+    });
+
+    // Save the user to the database
     const savedUser = await user.save();
+    
     res.json(savedUser);
   } catch (error) {
-    res.json({ message: error });
+    res.status(500).json({ message: "Failed to create user", error: error });
   }
 });
-
 userRouter.post("/:userId", async (req, res) => {
   const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
 
