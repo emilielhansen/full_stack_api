@@ -2,8 +2,10 @@ import { Router } from "express";
 import User from "../models/user";
 import CreateUserDto from "../dto/createUserDto";
 
-const userRouter = Router();
 const argon2 = require('argon2');
+const jwt = require('jsonwebtoken');
+
+const userRouter = Router();
 
 userRouter.get("/", async (req, res) => {
   try {
@@ -29,29 +31,16 @@ userRouter.get("/:userId", async (req, res) => {
 userRouter.post("/", async (req, res) => {
   console.log(req.body);
   const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
+  const user = new User({ username: username, fullname: fullname, email: email, password: password, image: image, createdAt: createdAt});
 
   try {
-    // Hash the password
-    const hashedPassword = await argon2.hash(password);
-
-    // Create a new User instance with hashed password
-    const user = new User({ 
-      username: username, 
-      fullname: fullname, 
-      email: email, 
-      password: hashedPassword, 
-      image: image, 
-      createdAt: createdAt
-    });
-
-    // Save the user to the database
     const savedUser = await user.save();
-    
     res.json(savedUser);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create user", error: error });
+    res.json({ message: error });
   }
 });
+
 userRouter.post("/:userId", async (req, res) => {
   const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
 
@@ -78,6 +67,42 @@ userRouter.delete("/:userId", async (req, res) => {
     res.json(removedUser);
   } catch (error) {
     res.json({ message: error });
+  }
+});
+
+userRouter.get("/", async (req, res) => {
+  const { email, password } = req.body;
+  console.log('Reached /login endpoint'); 
+
+  try {
+    // 1. Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    // 2. Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // 3. Verify password using Argon2
+    const passwordValid = await argon2.verify(user.password, password);
+
+    if (!passwordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // 4. Generate JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // 5. Send token in response
+    res.status(200).json({ token });
+
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

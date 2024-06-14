@@ -26,12 +26,12 @@ postRouter.post("/", async (req, res) => {
 });
 
 postRouter.put("/:postId", async (req, res) => {
-  const { user, content } = req.body as CreatePostDto;
+  const { content } = req.body;
 
   try {
     const updatedPost = await Post.findByIdAndUpdate(
       req.params.postId,
-      { user, content },
+      { content },
       { new: true }
     );
 
@@ -41,7 +41,7 @@ postRouter.put("/:postId", async (req, res) => {
 
     res.json(updatedPost);
   } catch (error) {
-    res.json({ message: error });
+    res.status(500).json({ message: "" });
   }
 });
 
