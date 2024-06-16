@@ -3,7 +3,6 @@ import User from "../models/user";
 import CreateUserDto from "../dto/createUserDto";
 
 const argon2 = require('argon2');
-const jwt = require('jsonwebtoken');
 
 const userRouter = Router();
 
@@ -29,15 +28,30 @@ userRouter.get("/:userId", async (req, res) => {
 });
 
 userRouter.post("/", async (req, res) => {
-  console.log(req.body);
+  console.log('Request body:', req.body);
   const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
-  const user = new User({ username: username, fullname: fullname, email: email, password: password, image: image, createdAt: createdAt});
 
   try {
+    // Hash the password using argon2
+    const hashedPassword = await argon2.hash(password);
+
+    // Create a new user with the hashed password
+    const user = new User({ 
+      username: username, 
+      fullname: fullname, 
+      email: email, 
+      password: hashedPassword, 
+      image: image, 
+      createdAt: createdAt
+    });
+
     const savedUser = await user.save();
+
+    console.log('Saved user:', savedUser);
     res.json(savedUser);
   } catch (error) {
-    res.json({ message: error });
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: "User creation failed" });
   }
 });
 
@@ -72,7 +86,7 @@ userRouter.delete("/:userId", async (req, res) => {
 
 userRouter.get("/", async (req, res) => {
   const { email, password } = req.body;
-  console.log('Reached /login endpoint'); 
+  console.log("Login credentials: ", req.body);
 
   try {
     // 1. Validate input
@@ -94,11 +108,6 @@ userRouter.get("/", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // 4. Generate JWT token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    // 5. Send token in response
-    res.status(200).json({ token });
 
   } catch (error) {
     console.error("Login error:", error);
