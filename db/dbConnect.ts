@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Sequelize } from 'sequelize';
 
 export default () => {
   if (!process.env.MONGO_URI) {
@@ -9,3 +10,9 @@ export default () => {
     .then(() => console.log("Connected to MongoDB"))
     .catch((error) => console.error(error));
 };
+
+const sequelize = new Sequelize('database', 'username', 'password', {
+  host: 'localhost',
+  dialect: 'mysql',
+});
+
