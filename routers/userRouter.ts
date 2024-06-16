@@ -6,7 +6,6 @@ import { SessionData } from 'express-session';
 import authMiddleware from '../middleware/authMiddleware';
 
 const argon2 = require('argon2');
-const jwt = require('jsonwebtoken');
 
 const userRouter = Router();
 const router = Router();
@@ -83,15 +82,30 @@ userRouter.get("/:userId", async (req, res) => {
 });
 
 userRouter.post("/", async (req, res) => {
-  console.log(req.body);
+  console.log('Request body:', req.body);
   const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
-  const user = new User({ username: username, fullname: fullname, email: email, password: password, image: image, createdAt: createdAt});
 
   try {
+    // Hash the password using argon2
+    const hashedPassword = await argon2.hash(password);
+
+    // Create a new user with the hashed password
+    const user = new User({ 
+      username: username, 
+      fullname: fullname, 
+      email: email, 
+      password: hashedPassword, 
+      image: image, 
+      createdAt: createdAt
+    });
+
     const savedUser = await user.save();
+
+    console.log('Saved user:', savedUser);
     res.json(savedUser);
   } catch (error) {
-    res.json({ message: error });
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: "User creation failed" });
   }
 });
 
@@ -123,5 +137,13 @@ userRouter.delete("/:userId", async (req, res) => {
     res.json({ message: error });
   }
 });
+
+
+    // 3. Verify password using Argon2
+    //const passwordValid = await argon2.verify(user.password, password);
+
+    //if (!passwordValid) {
+      //return res.status(401).json({ message: "Invalid credentials" });
+    //}
 
 export default userRouter;
