@@ -14,8 +14,9 @@ dbConnect();
 const app = express();
 app.use(bodyParser.json());
 
+// Ændre til http://localhost:5173 hvis lokalt
 app.use(cors({
-  origin: 'process.env.APP_PORT', 
+  origin: 'https://full-stack-app-q6d5.onrender.com/', 
   credentials: true,
 }));
 
