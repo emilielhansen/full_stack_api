@@ -1,6 +1,6 @@
 import { Router } from "express";
-import Post from "../../full_stack_api/models/post";
-import CreatePostDto from "../../full_stack_api/dto/createPostDto";
+import Post from "../models/post";
+import CreatePostDto from "../dto/createPostDto";
 
 const postRouter = Router();
 
