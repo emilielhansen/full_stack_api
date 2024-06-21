@@ -90,12 +90,14 @@ userRouter.post("/", async (req, res) => {
 
   try {
 
+    const hashedPassword = await argon2.hash(password);
+
     // Create a new user with the hashed password
     const user = new User({ 
       username: username, 
       fullname: fullname, 
       email: email, 
-      password: password, 
+      password: hashedPassword,
       createdAt: createdAt
     });
 
