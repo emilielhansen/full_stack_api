@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 
 // Ændre til http://localhost:5173 hvis lokalt
 app.use(cors({
-  origin: 'https://full-stack-app-q6d5.onrender.com', 
+  origin: `process.env.APP_URL`, 
   credentials: true,
 }));
 
@@ -40,5 +40,5 @@ app.use("/posts", postRouter);
 
 
 app.listen(process.env.API_PORT, () => {
-  console.log("Server is running on port 3000");
+  console.log("Server is running on port `$API_PORT`");
 });

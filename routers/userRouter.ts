@@ -33,7 +33,9 @@ userRouter.post('/login', async (req, res) => {
 
     console.log('User found:', user);
 
-    if (user.password === password) {
+    const passwordMatch = await argon2.verify(user.password, password);
+
+    if (passwordMatch) {
       // Store user ID in session
       (req.session as any).userId = user._id.toString();  
       console.log('Password match. User logged in:', user);
@@ -81,6 +83,7 @@ userRouter.get("/:userId", async (req, res) => {
   }
 });
 
+//Signup
 userRouter.post("/", async (req, res) => {
   console.log('Request body:', req.body);
   const { username, fullname, email, password, createdAt } = req.body as CreateUserDto;
