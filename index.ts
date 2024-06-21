@@ -15,7 +15,7 @@ const app = express();
 app.use(bodyParser.json());
 
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: `process.env.APP_URL`, 
   credentials: true,
 }));
 
@@ -38,6 +38,6 @@ app.use("/users", userRouter);
 app.use("/posts", postRouter);
 
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+app.listen(process.env.API_PORT, () => {
+  console.log("Server is running on port `$API_PORT`");
 });

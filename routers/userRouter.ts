@@ -33,7 +33,9 @@ userRouter.post('/login', async (req, res) => {
 
     console.log('User found:', user);
 
-    if (user.password === password) {
+    const passwordMatch = await argon2.verify(user.password, password);
+
+    if (passwordMatch) {
       // Store user ID in session
       (req.session as any).userId = user._id.toString();  
       console.log('Password match. User logged in:', user);
@@ -81,6 +83,7 @@ userRouter.get("/:userId", async (req, res) => {
   }
 });
 
+//Signup
 userRouter.post("/", async (req, res) => {
   console.log('Request body:', req.body);
   const { username, fullname, email, password, image, createdAt } = req.body as CreateUserDto;
@@ -138,12 +141,23 @@ userRouter.delete("/:userId", async (req, res) => {
   }
 });
 
+// Endpoint to get current user
+userRouter.get('/current', async (req, res) => {
+  if (!req.params) {
+    return res.status(401).json({ error: 'User not authenticated' });
+  }
 
-    // 3. Verify password using Argon2
-    //const passwordValid = await argon2.verify(user.password, password);
+  try {
+    const user = await User.findById(req.params);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
-    //if (!passwordValid) {
-      //return res.status(401).json({ message: "Invalid credentials" });
-    //}
 
 export default userRouter;
