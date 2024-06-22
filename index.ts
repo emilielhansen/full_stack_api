@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 
 // Ændre til http://localhost:5173 hvis lokalt
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.APP_URL,
   credentials: true,
 }));
 
