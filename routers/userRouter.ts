@@ -4,18 +4,11 @@ import CreateUserDto from "../dto/createUserDto";
 import { LoginUserDto } from "../dto/loginUserDto";
 import { SessionData } from 'express-session';
 import authMiddleware from '../middleware/authMiddleware';
-import { v4 as uuidv4 } from 'uuid';
 
 const argon2 = require('argon2');
 
 const userRouter = Router();
-
-declare module 'express-session' {
-  interface SessionData {
-    userId: string;
-    sessionToken: string;
-  }
-}
+const router = Router();
 
 // tests
 userRouter.get('/protected', authMiddleware, (req, res) => {
@@ -43,18 +36,8 @@ userRouter.post('/login', async (req, res) => {
     const passwordMatch = await argon2.verify(user.password, password);
 
     if (passwordMatch) {
-      // Generer sessionToken
-      const sessionToken = uuidv4();
-      user.sessionToken = sessionToken;
-      await user.save();
-
-      // Gem sessionToken og userID i sessionen
-      req.session.userId = user._id.toString();
-      req.session.sessionToken = sessionToken;
-
-      // Sæt sessionToken som cookie
-      res.cookie('session_token', sessionToken, { expires: new Date(Date.now() + 3600000), httpOnly: true }); // 1 hour expiration
-
+      // Store user ID in session
+      (req.session as any).userId = user._id.toString();  
       console.log('Password match. User logged in:', user);
       return res.status(200).json(user);
     } else {
@@ -114,7 +97,7 @@ userRouter.post("/", async (req, res) => {
       username: username, 
       fullname: fullname, 
       email: email, 
-      password: hashedPassword, 
+      password: hashedPassword,
       createdAt: createdAt
     });
 
