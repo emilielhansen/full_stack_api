@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 
 // Ændre til http://localhost:5173 hvis lokalt
 app.use(cors({
-  origin: process.env.APP_URL,
+  origin: "http://localhost:5173",
   credentials: true,
 }));
 
@@ -29,7 +29,8 @@ app.use(session({
   cookie: {
     secure: false, // Set to true if using HTTPS
     httpOnly: true,
-    sameSite: 'lax' // Ensures cookies are sent with cross-site requests
+    sameSite: 'lax',
+    maxAge: 3600000 // Ensures cookies are sent with cross-site requests
   }
 }));
 
