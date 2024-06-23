@@ -4,40 +4,64 @@ import CreateUserDto from "../dto/createUserDto";
 import { LoginUserDto } from "../dto/loginUserDto";
 import { SessionData } from 'express-session';
 import authMiddleware from '../middleware/authMiddleware';
+import { v4 as uuidv4 } from 'uuid';
 
+//hashing
 const argon2 = require('argon2');
 
 const userRouter = Router();
-const router = Router();
 
-// tests
+//indsat fra session.d.ts - for at kunne gemme i session
+declare module 'express-session' {
+  interface SessionData {
+      userId: string;
+      sessionToken: string;
+  }
+}
+
+// Test på protected route
 userRouter.get('/protected', authMiddleware, (req, res) => {
   res.send('This is a protected route');
 });
 
+// test route
 userRouter.get('/test', (req, res) => {
   res.send('Rute virker');
 });
 
-// Login
+// Login route
 userRouter.post('/login', async (req, res) => {
   const { email, password } = req.body as LoginUserDto;
   console.log('Login attempt:', { email, password });
-
   try {
     const user = await User.findOne({ email });
     if (!user) {
       console.log('User not found for email:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-
     console.log('User found:', user);
-
     const passwordMatch = await argon2.verify(user.password, password);
 
     if (passwordMatch) {
-      // Store user ID in session
+      // Gem user ID i session
       (req.session as any).userId = user._id.toString();  
+      // Generer sessionToken
+      const sessionToken = uuidv4();
+      user.sessionToken = sessionToken;
+      await user.save();
+
+      // Gem sessionToken og userID i sessionen
+      req.session.userId = user._id.toString();
+      req.session.sessionToken = sessionToken;
+
+      // Sæt sessionToken som cookie
+      res.cookie('session_token', sessionToken, {
+        expires: new Date(Date.now() + 1800000), // 30 min expiration
+        httpOnly: false, // Beskyt mod XSS - sæt til true
+        secure: false, // Set til true hvis vi bruger HTTPS
+        sameSite: 'strict' // Beskyt mod CSRF
+    });
+
       console.log('Password match. User logged in:', user);
       return res.status(200).json(user);
     } else {
@@ -50,13 +74,14 @@ userRouter.post('/login', async (req, res) => {
   }
 });
 
-// Logout
+// Logout route
 userRouter.post('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
       return res.status(500).json({ message: 'Logout failed' });
     }
-    res.clearCookie('connect.sid'); // Slet session-cookien på klienten
+    res.clearCookie('connect.sid'); // Slet session-cookien
+    res.clearCookie('session_token');
     return res.status(200).json({ message: 'Logout successful' });
   });
 });
@@ -83,7 +108,7 @@ userRouter.get("/:userId", async (req, res) => {
   }
 });
 
-//Signup
+//Signup route
 userRouter.post("/", async (req, res) => {
   console.log('Request body:', req.body);
   const { username, fullname, email, password, createdAt } = req.body as CreateUserDto;
@@ -101,6 +126,7 @@ userRouter.post("/", async (req, res) => {
       createdAt: createdAt
     });
 
+    // gemmer dataen i databasen
     const savedUser = await user.save();
 
     console.log('Saved user:', savedUser);

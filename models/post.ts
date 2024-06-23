@@ -1,3 +1,5 @@
+//Definere modellen for post data
+
 import mongoose from "mongoose";
 
 const PostSchema = new mongoose.Schema({
